@@ -371,9 +371,9 @@ POST /api/tasks
 The admin user cannot be created through the registration form. Register a normal user through the app, then promote them via SQL:
 ```json
 {
-  "name": "ABC",
-  "email": "abc@taskflow.com",
-  "password": "abc123"
+  "name": "demo",
+  "email": "demo@taskflow.com",
+  "password": "demo123"
 }
 ```
 ```sql
