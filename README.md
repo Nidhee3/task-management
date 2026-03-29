@@ -152,6 +152,30 @@ task-management-main/
 One user can create many tasks. One user can be assigned to many tasks. Both are separate foreign key relationships pointing to the same `users` table.
 
 ---
+```mermaid
+erDiagram
+    users {
+        BIGINT id PK
+        VARCHAR name
+        VARCHAR email
+        VARCHAR password
+        VARCHAR role
+        DATETIME created_at
+    }
+    tasks {
+        BIGINT id PK
+        VARCHAR title
+        TEXT description
+        VARCHAR status
+        VARCHAR priority
+        BIGINT created_by FK
+        BIGINT assigned_to FK
+        DATETIME created_at
+        DATETIME updated_at
+    }
+    users ||--o{ tasks : "creates"
+    users ||--o{ tasks : "assigned to"
+```
 
 ## Application Architecture
 
@@ -517,3 +541,5 @@ Lombok — Using `@Data`, `@AllArgsConstructor` and `@NoArgsConstructor` across 
 - User management: An admin can view all users but cannot deactivate or delete any of them. There is no `DELETE` or `PATCH` endpoint for users.
 - No Swagger/OpenAPI: All endpoints are documented in this README instead.
 - No JWT refresh: Tokens expire after 24 hours and the user must log in again. Refresh tokens are not implemented.
+
+I learnt from my mistakes , learnt a lot of new concepts , practised the ones I learnt clearly and implemented them through this project.
