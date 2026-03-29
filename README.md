@@ -1,6 +1,6 @@
 # TaskFlow — Task Management System
 
-A full-stack task management application built as a capstone project over two days. Users can create and manage their own tasks. Admins have full control over all tasks and can view all registered users.
+A full-stack task management where users can create and manage their own tasks. Admins have full control over all tasks and can view all registered users.
 
 ---
 
