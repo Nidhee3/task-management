@@ -4,12 +4,17 @@ import com.tasksystemnidharshana.taskmanager.entity.Task;
 import com.tasksystemnidharshana.taskmanager.entity.User;
 import com.tasksystemnidharshana.taskmanager.exception.ResourceNotFoundException;
 import com.tasksystemnidharshana.taskmanager.exception.TaskApiException;
+import com.tasksystemnidharshana.taskmanager.payload.PagedTaskResponse;
 import com.tasksystemnidharshana.taskmanager.payload.TaskDto;
 import com.tasksystemnidharshana.taskmanager.payload.TaskResponseDto;
 import com.tasksystemnidharshana.taskmanager.repository.TaskRepository;
 import com.tasksystemnidharshana.taskmanager.repository.UserRepository;
 import com.tasksystemnidharshana.taskmanager.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class TaskServiceImpl implements TaskService {
-//all task operations
+
     private static final List<String> VALID_STATUSES =
             Arrays.asList("TODO", "IN_PROGRESS", "DONE");
 
@@ -31,10 +36,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private UserRepository userRepository;
-    //create task
+
+    // ─── CREATE ─────────────────────────────────────────────────────────────
     @Override
     public TaskResponseDto createTask(TaskDto taskDto, String currentUserEmail) {
-        //check if user exists
+
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new TaskApiException(HttpStatus.NOT_FOUND,
                         "Logged-in user not found"));
@@ -54,7 +60,7 @@ public class TaskServiceImpl implements TaskService {
             task.setPriority(taskDto.getPriority().toUpperCase());
         }
 
-        // Admin can assign to anyone , User always assigned to themselves
+        // Admin can assign to anyone; regular user always assigned to themselves
         if (currentUser.getRole().equals("ADMIN") && taskDto.getAssignedToId() != null) {
             User assignedUser = userRepository.findById(taskDto.getAssignedToId())
                     .orElseThrow(() -> new ResourceNotFoundException(
@@ -68,10 +74,14 @@ public class TaskServiceImpl implements TaskService {
         return mapToDto(savedTask);
     }
 
+    
     @Override
-    public List<TaskResponseDto> getAllTasks(String status, Long assignedToId,
-                                             String priority, String currentUserEmail) {
-        //check if status and priority are valid or not
+    public PagedTaskResponse getAllTasks(String status, Long assignedToId,
+                                         String priority, String search,
+                                         int page, int size,
+                                         String currentUserEmail) {
+
+        // Validate filters
         if (status != null && !VALID_STATUSES.contains(status.toUpperCase())) {
             throw new TaskApiException(HttpStatus.BAD_REQUEST,
                     "Invalid status. Must be one of: TODO, IN_PROGRESS, DONE");
@@ -81,30 +91,45 @@ public class TaskServiceImpl implements TaskService {
                     "Invalid priority. Must be one of: HIGH, MEDIUM, LOW");
         }
 
-        String statusUpper = (status != null) ? status.toUpperCase() : null;
+        String statusUpper   = (status   != null) ? status.toUpperCase()   : null;
         String priorityUpper = (priority != null) ? priority.toUpperCase() : null;
+        
+        String searchTerm    = (search   != null && !search.isBlank()) ? search.trim() : null;
 
-        // Find the caller to check their role
+        
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
         User currentUser = userRepository.findByEmail(currentUserEmail)
                 .orElseThrow(() -> new TaskApiException(HttpStatus.NOT_FOUND,
                         "Logged-in user not found"));
 
-        List<Task> tasks;
+        Page<Task> taskPage;
 
         if (currentUser.getRole().equals("ADMIN")) {
-            // Admin can also filter by assignedTo (useful for monitoring)
-            tasks = taskRepository.findByFilters(statusUpper, assignedToId, priorityUpper);
+            taskPage = taskRepository.findByFilters(
+                    statusUpper, assignedToId, priorityUpper, searchTerm, pageable);
         } else {
-            // User sees only tasks created by them or assigned to them
-            tasks = taskRepository.findMyTasks(
-                    currentUser.getId(), statusUpper, priorityUpper);
+            taskPage = taskRepository.findMyTasks(
+                    currentUser.getId(), statusUpper, priorityUpper, searchTerm, pageable);
         }
 
-        return tasks.stream()
+        
+        List<TaskResponseDto> taskDtos = taskPage.getContent()
+                .stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+
+        return new PagedTaskResponse(
+                taskDtos,
+                taskPage.getNumber(),        
+                taskPage.getTotalPages(),    
+                taskPage.getTotalElements(), 
+                taskPage.hasNext(),          
+                taskPage.hasPrevious()       
+        );
     }
 
+    
     @Override
     public TaskResponseDto getTaskById(Long id) {
         Task task = taskRepository.findById(id)
@@ -122,10 +147,10 @@ public class TaskServiceImpl implements TaskService {
                 .orElseThrow(() -> new TaskApiException(HttpStatus.NOT_FOUND,
                         "Logged-in user not found"));
 
-        boolean isCreator = task.getCreatedBy().getId().equals(currentUser.getId());
+        boolean isCreator  = task.getCreatedBy().getId().equals(currentUser.getId());
         boolean isAssigned = task.getAssignedTo() != null &&
                 task.getAssignedTo().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole().equals("ADMIN");
+        boolean isAdmin    = currentUser.getRole().equals("ADMIN");
 
         if (!isCreator && !isAssigned && !isAdmin) {
             throw new TaskApiException(HttpStatus.FORBIDDEN,
@@ -136,17 +161,14 @@ public class TaskServiceImpl implements TaskService {
         if (taskDto.getDescription() != null) {
             task.setDescription(taskDto.getDescription());
         }
-
         if (taskDto.getStatus() != null && !taskDto.getStatus().isBlank()) {
             validateStatus(taskDto.getStatus());
             task.setStatus(taskDto.getStatus().toUpperCase());
         }
-
         if (taskDto.getPriority() != null && !taskDto.getPriority().isBlank()) {
             validatePriority(taskDto.getPriority());
             task.setPriority(taskDto.getPriority().toUpperCase());
         }
-
         // Only admin can reassign
         if (isAdmin && taskDto.getAssignedToId() != null) {
             User assignedUser = userRepository.findById(taskDto.getAssignedToId())
@@ -160,15 +182,13 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    //deleting a task
     public void deleteTask(Long id) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", id));
         taskRepository.delete(task);
     }
 
-
-
+    
     private void validateStatus(String status) {
         if (!VALID_STATUSES.contains(status.toUpperCase())) {
             throw new TaskApiException(HttpStatus.BAD_REQUEST,
@@ -197,7 +217,6 @@ public class TaskServiceImpl implements TaskService {
             dto.setCreatedById(task.getCreatedBy().getId());
             dto.setCreatedByName(task.getCreatedBy().getName());
         }
-
         if (task.getAssignedTo() != null) {
             dto.setAssignedToId(task.getAssignedTo().getId());
             dto.setAssignedToName(task.getAssignedTo().getName());

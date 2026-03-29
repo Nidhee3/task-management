@@ -1,17 +1,18 @@
 package com.tasksystemnidharshana.taskmanager.service;
 
+import com.tasksystemnidharshana.taskmanager.payload.PagedTaskResponse;
 import com.tasksystemnidharshana.taskmanager.payload.TaskDto;
 import com.tasksystemnidharshana.taskmanager.payload.TaskResponseDto;
-
-import java.util.List;
 
 public interface TaskService {
 
     TaskResponseDto createTask(TaskDto taskDto, String currentUserEmail);
 
-    // Admin all tasks , User - only their tasks.
-    List<TaskResponseDto> getAllTasks(String status, Long assignedToId,
-                                      String priority, String currentUserEmail);
+    
+    PagedTaskResponse getAllTasks(String status, Long assignedToId,
+                                  String priority, String search,
+                                  int page, int size,
+                                  String currentUserEmail);
 
     TaskResponseDto getTaskById(Long id);
 

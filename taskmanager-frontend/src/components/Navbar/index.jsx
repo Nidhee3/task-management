@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-//checks if logged in or not and their role
 const Navbar = () => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin]       = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
+    const role  = localStorage.getItem("role");
     if (token) {
       setIsLoggedIn(true);
       setIsAdmin(role === "ADMIN");
@@ -19,13 +18,12 @@ const Navbar = () => {
     }
   }, [isLoggedIn]);
 
-//clears all when user logs out
   const onLogoutHandler = () => {
     localStorage.clear();
     navigate("/login");
   };
+
   return (
-    //navbar
     <nav
       className="navbar navbar-expand-lg navbar-dark"
       style={{ backgroundColor: "#0d4d4d", padding: "0.6rem 1.5rem" }}
@@ -41,10 +39,9 @@ const Navbar = () => {
           letterSpacing: "1px",
         }}
       >
-        TeamFlow
+        TaskFlow
       </Link>
 
-      
       <button
         className="navbar-toggler"
         type="button"
@@ -62,27 +59,20 @@ const Navbar = () => {
           {isLoggedIn && (
             <>
               <li className="nav-item">
-                <Link className="nav-link" to="/dashboard">
-                  Dashboard
-                </Link>
+                <Link className="nav-link" to="/dashboard">Dashboard</Link>
               </li>
               <li className="nav-item">
-                <Link className="nav-link" to="/tasks/new">
-                  + New Task
-                </Link>
+                <Link className="nav-link" to="/tasks/new">+ New Task</Link>
               </li>
               {isAdmin && (
                 <li className="nav-item">
-                  <Link className="nav-link" to="/users">
-                    User Management
-                  </Link>
+                  <Link className="nav-link" to="/users">User Management</Link>
                 </li>
               )}
             </>
           )}
         </ul>
 
-        
         <div className="ms-auto">
           {!isLoggedIn ? (
             <Link

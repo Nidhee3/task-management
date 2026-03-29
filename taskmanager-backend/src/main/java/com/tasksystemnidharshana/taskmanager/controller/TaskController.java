@@ -1,5 +1,6 @@
 package com.tasksystemnidharshana.taskmanager.controller;
 
+import com.tasksystemnidharshana.taskmanager.payload.PagedTaskResponse;
 import com.tasksystemnidharshana.taskmanager.payload.TaskDto;
 import com.tasksystemnidharshana.taskmanager.payload.TaskResponseDto;
 import com.tasksystemnidharshana.taskmanager.service.TaskService;
@@ -11,15 +12,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/tasks")
 public class TaskController {
 
     @Autowired
     private TaskService taskService;
-    //creating a new task
+
+    // Create a new task
     @PostMapping
     public ResponseEntity<TaskResponseDto> createTask(
             @Valid @RequestBody TaskDto taskDto,
@@ -28,35 +28,40 @@ public class TaskController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    //getting all tasks
+    // Get all tasks 
     @GetMapping
-    public ResponseEntity<List<TaskResponseDto>> getAllTasks(
+    public ResponseEntity<PagedTaskResponse> getAllTasks(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long assignedTo,
             @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0")  int page,   // which page (0 = first)
+            @RequestParam(defaultValue = "6")  int size,   // tasks per page
             @AuthenticationPrincipal UserDetails currentUser) {
 
-        List<TaskResponseDto> tasks = taskService.getAllTasks(
-                status, assignedTo, priority, currentUser.getUsername());
-        return ResponseEntity.ok(tasks);
+        PagedTaskResponse response = taskService.getAllTasks(
+                status, assignedTo, priority, search, page, size, currentUser.getUsername());
+        return ResponseEntity.ok(response);
     }
-    //getting a task
+
+    // Get one task by ID
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponseDto> getTaskById(@PathVariable Long id) {
         TaskResponseDto task = taskService.getTaskById(id);
         return ResponseEntity.ok(task);
     }
-    //updating task details
+
+    // Update a task
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponseDto> updateTask(
             @PathVariable Long id,
             @Valid @RequestBody TaskDto taskDto,
             @AuthenticationPrincipal UserDetails currentUser) {
-        TaskResponseDto response = taskService.updateTask(
-                id, taskDto, currentUser.getUsername());
+        TaskResponseDto response = taskService.updateTask(id, taskDto, currentUser.getUsername());
         return ResponseEntity.ok(response);
     }
-    //deleting a task
+
+    // Delete a task (Admin only)
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTask(@PathVariable Long id) {
         taskService.deleteTask(id);
