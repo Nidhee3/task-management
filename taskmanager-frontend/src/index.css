@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Times+New+Roman:wght@300;400;500;600;700&family=Lato:wght@300;400;700&display=swap');
+
+body {
+  background-color: #FAF7F2;
+  font-family: 'Lato', sans-serif;
+  color: #2C2C2C;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Times New Roman', serif;
+  font-weight: 600;
+}
+
+.wrapper {
+  background-color: #ffffff;
+  padding: 30px;
+  margin-top: 30px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.10);
+}
+
+.priority-high {
+  background-color: #B5373A;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.priority-medium {
+  background-color: #C8A96E;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.priority-low {
+  background-color: #5A8A6A;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-todo {
+  background-color: #6c757d;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-in-progress {
+  background-color: #2D6A6A;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-done {
+  background-color: #5A8A6A;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.btn-primary {
+  background-color: #2D6A6A ;
+  border-color: #2D6A6A ;
+  color: #ffffff ;
+}
+
+.btn-primary:hover {
+  background-color: #245858 ;
+  border-color: #245858 ;
+}
+
+.btn-success {
+  background-color: #C8A96E ;
+  border-color: #C8A96E ;
+  color: #ffffff ;
+}
+
+.btn-success:hover {
+  background-color: #b8954f ;
+  border-color: #b8954f ;
+}
+
+.btn-danger {
+  background-color: #B5373A ;
+  border-color: #B5373A ;
+}
