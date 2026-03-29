@@ -6,36 +6,20 @@ A full-stack task management where users can create and manage their own tasks. 
 
 ## Table of Contents
 
-- [TaskFlow — Task Management System](#taskflow--task-management-system)
-  - [Table of Contents](#table-of-contents)
-  - [Tech Stack](#tech-stack)
-  - [Project Structure](#project-structure)
-  - [Database Design](#database-design)
-  - [Application Architecture](#application-architecture)
-  - [User Roles and Permissions](#user-roles-and-permissions)
-  - [API Reference](#api-reference)
-    - [Auth — Public](#auth--public)
-    - [Users — Admin only](#users--admin-only)
-    - [Tasks — Any logged-in user](#tasks--any-logged-in-user)
-  - [Frontend Pages](#frontend-pages)
-  - [What I Implemented](#what-i-implemented)
-    - [Login and Registration](#login-and-registration)
-    - [JWT Authentication](#jwt-authentication)
-    - [Role-Based Access Control](#role-based-access-control)
-    - [Task CRUD](#task-crud)
-    - [Filters, Search, and Pagination](#filters-search-and-pagination)
-    - [Global Error Handling](#global-error-handling)
-    - [Input Validation](#input-validation)
-    - [User Management Page](#user-management-page)
-    - [Docker and CI/CD](#docker-and-cicd)
-  - [Sample Users](#sample-users)
-    - [Admin](#admin)
-    - [Regular User](#regular-user)
-  - [How to Run](#how-to-run)
-  - [Environment Variables](#environment-variables)
-  - [CI/CD](#cicd)
-  - [Learnings](#learnings)
-  - [Known Limitations](#known-limitations)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Database Design](#database-design)
+- [Application Architecture](#application-architecture)
+- [User Roles and Permissions](#user-roles-and-permissions)
+- [API Reference](#api-reference)
+- [Frontend Pages](#frontend-pages)
+- [What I Implemented](#what-i-implemented)
+- [Sample Users](#sample-users)
+- [How to Run](#how-to-run)
+- [Environment Variables](#environment-variables)
+- [CI/CD](#cicd)
+- [Learnings](#learnings)
+- [Known Limitations](#known-limitations)
 
 ---
 
@@ -56,7 +40,6 @@ A full-stack task management where users can create and manage their own tasks. 
 ---
 
 ## Project Structure
-
 ```
 task-management-main/
 ├── .github/
@@ -150,8 +133,6 @@ task-management-main/
 | updated_at | DATETIME | Updated automatically on every change |
 
 One user can create many tasks. One user can be assigned to many tasks. Both are separate foreign key relationships pointing to the same `users` table.
-
----
 ```mermaid
 erDiagram
     users {
@@ -174,11 +155,12 @@ erDiagram
         DATETIME updated_at
     }
     users ||--o{ tasks : "creates"
-    users ||--o{ tasks : "assigned to"
+    users |o--o{ tasks : "assigned to"
 ```
 
-## Application Architecture
+---
 
+## Application Architecture
 ```
 Browser (React SPA)
         |
@@ -213,7 +195,6 @@ Browser (React SPA)
 There are two roles: `ADMIN` and `USER`. Everyone who registers through the app is automatically assigned `USER`. There is no way to self-assign `ADMIN` during registration.
 
 To promote a user to admin, update their role directly in the database:
-
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE email = 'user@example.com';
 ```
@@ -233,7 +214,6 @@ User can:
 - Cannot reassign tasks → only admins can change who a task is assigned to
 
 Security rules enforced in `SecurityConfig`:
-
 ```
 /api/auth/**           →  public
 /api/users/**          →  ADMIN only
@@ -248,7 +228,6 @@ Role checks are also enforced at the service layer, so the rules hold regardless
 ## API Reference
 
 All protected endpoints require the header:
-
 ```
 Authorization: Bearer <token>
 ```
@@ -291,7 +270,6 @@ Query parameters for `GET /api/tasks`:
 | `size` | number | Tasks per page — default is 6 |
 
 Sample login request and response:
-
 ```json
 POST /api/auth/login
 {
@@ -307,7 +285,6 @@ POST /api/auth/login
 ```
 
 Sample task creation request and response:
-
 ```json
 POST /api/tasks
 {
@@ -366,62 +343,23 @@ POST /api/tasks
 - Docker Compose setup with MySQL healthcheck
 - GitHub Actions CI pipeline
 
-### Login and Registration
-- Register form collects name, email, and password — all three are validated on the frontend with Formik and Yup before the request is sent
-- The submit button stays disabled until the form is valid
-- Passwords are hashed with BCrypt — plain text is never stored
-- Every new account is automatically assigned the `USER` role — there is no way to self-register as admin
-- Login returns a JWT token and the user's role, both saved to `localStorage`
-- If the token is missing, the app redirects to `/login`
+**Login and Registration** — Formik + Yup validation, BCrypt hashed passwords, auto-assigned `USER` role, JWT + role saved to `localStorage` on login.
 
-### JWT Authentication
-- Token is generated on login
-- Every request to a protected route must include the token as `Authorization: Bearer <token>`
-- A filter (`JwtAuthenticationFilter`) runs on every request, validates the token, and loads the user
-- Tokens expire after 24 hours — the user must log in again after that
+**JWT Authentication** — `JwtAuthenticationFilter` validates `Authorization: Bearer <token>` on every request. Tokens expire after 24 hours.
 
-### Role-Based Access Control
-- Three tiers enforced in `SecurityConfig`: public, admin-only, and any logged-in user
-- Role checks are also enforced inside the service layer — not just at the filter level
-- Non-admins who visit `/users` are redirected to the dashboard by the frontend, and blocked by the backend
-- The Navbar shows the "User Management" link only to admins
+**Role-Based Access Control** — Three tiers (`public`, `ADMIN`, authenticated) enforced in `SecurityConfig` and the service layer. Navbar and routes adapt per role.
 
-### Task CRUD
-- Create: Admins get a dropdown to assign the task to any registered user. Regular users always get assigned to themselves — the form shows a read-only note instead of a dropdown
-- Read: Admins see all tasks. Regular users see only tasks they created or tasks assigned to them
-- Update: The edit form pre-fills with the existing task data fetched from the API. Saving is allowed only if you are the creator, the assignee, or an admin — anyone else gets a `403`. Only admins can change the assigned user
-- Delete: The delete button only appears for admins on the dashboard. The endpoint is also blocked at the security filter level for non-admins
+**Task CRUD** — Admins can create, read, update, delete, and reassign any task. Users can create (auto-assigned to themselves), and edit only their own tasks. Delete is admin-only at the filter level.
 
-### Filters, Search, and Pagination
-- Dashboard has dropdowns to filter by status and priority — available to all users
-- Admins get an additional "Assigned To" dropdown populated from the `/api/users` endpoint
-- Free-text search filters tasks by title or description
-- Results are paginated — 6 tasks per page by default
-- Numbered page buttons are shown along with Previous and Next controls
-- A count shows "Showing X of Y tasks — Page A of B"
-- Filters reset to page 0 when changed so the results stay consistent
+**Filters, Search, and Pagination** — Filter by status, priority, and assigned user (admin only). Free-text search across title and description. 6 tasks per page with numbered controls.
 
-### Global Error Handling
-- `ResourceNotFoundException` → `404`
-- `TaskApiException` → whatever status code was set in the exception (`400`, `403`, etc.)
-- `MethodArgumentNotValidException` → `400` with a field-by-field error map
-- Any other `Exception` → `500`
-- All errors use the same `ErrorDetail` structure: timestamp, message, and request path
+**Error Handling** — `404`, `400` (with field-level errors), configured status, and `500` — all returning a consistent `ErrorDetail` payload.
 
-### Input Validation
-- Backend DTOs use Jakarta Bean Validation (`@NotBlank`) — `@Valid` is applied on all controller request bodies
-- Frontend validates with Formik and Yup — title, status, and priority are required; status and priority must be one of the allowed enum values
-- The submit button is disabled until the form passes all validation rules
+**Input Validation** — `@Valid` + Jakarta Bean Validation on all request bodies. Formik + Yup on the frontend; submit disabled until valid.
 
-### User Management Page
-- Admin-only table showing all registered users with name, email, role, and registration date
-- Role shown as a coloured badge — red for ADMIN, grey for USER
-- Non-admins are redirected away by the frontend and blocked by the backend
+**User Management** — Admin-only page listing all users with name, email, role badge, and registration date.
 
-### Docker and CI/CD
-- Docker Compose starts three services: MySQL, backend, and frontend
-- MySQL has a healthcheck — the backend only starts after the database is confirmed ready
-- GitHub Actions runs on every push and PR to `main`: builds the backend with Maven, builds the frontend with npm, and builds both Docker images to confirm the Dockerfiles work
+**Docker and CI/CD** — Docker Compose runs MySQL (with healthcheck), backend, and frontend. GitHub Actions builds backend, frontend, and both Docker images on every push to `main`.
 
 ---
 
@@ -430,7 +368,6 @@ POST /api/tasks
 ### Admin
 
 The admin user cannot be created through the registration form. Register a normal user through the app, then promote them via SQL:
-
 ```json
 {
   "name": "ABC",
@@ -438,7 +375,6 @@ The admin user cannot be created through the registration form. Register a norma
   "password": "abc123"
 }
 ```
-
 ```sql
 UPDATE users SET role = 'ADMIN' WHERE email = 'abc@taskflow.com';
 ```
@@ -446,7 +382,6 @@ UPDATE users SET role = 'ADMIN' WHERE email = 'abc@taskflow.com';
 ### Regular User
 
 Register through the app at `/register`, or POST to `/api/auth/register`:
-
 ```json
 {
   "name": "Your Name",
@@ -461,15 +396,13 @@ All registrations are automatically assigned the `USER` role.
 
 ## How to Run
 
-Requirements: Docker Desktop installed and running, Java 21 and Maven installed.
-
+Requirements: Docker Desktop installed and running.
 ```bash
 git clone https://github.com/Nidhee3/task-management.git
 cd task-management-main
 ```
 
 Build the backend jar first — the Docker image depends on it:
-
 ```bash
 cd taskmanager-backend
 ./mvnw clean package -DskipTests
@@ -477,7 +410,6 @@ cd ..
 ```
 
 Create a `.env` file in the project root (see [Environment Variables](#environment-variables)), then:
-
 ```bash
 docker compose up --build
 ```
@@ -489,16 +421,14 @@ Wait for all three services to start. The backend is ready when you see `Started
 | Frontend | http://localhost:3000 |
 | Backend API | http://localhost:8080 |
 
-To stop: `docker compose down`
-
-To stop and delete the database volume too: `docker compose down -v`
+To stop: `docker compose down`  
+To stop and delete the database volume: `docker compose down -v`
 
 ---
 
 ## Environment Variables
 
 Create a `.env` file in the project root. This file is in `.gitignore` and will not be committed.
-
 ```env
 MYSQL_ROOT_PASSWORD=yourpassword
 APP_JWT_SECRET=your-base64-encoded-secret
@@ -509,8 +439,7 @@ APP_JWT_SECRET=your-base64-encoded-secret
 | `MYSQL_ROOT_PASSWORD` | Database, Backend | MySQL root password used by Docker Compose |
 | `APP_JWT_SECRET` | Backend | Base64-encoded secret used to sign JWT tokens |
 
-
-If `APP_JWT_SECRET` is not set, the backend falls back to a default value hardcoded in `application.properties`. 
+If `APP_JWT_SECRET` is not set, the backend falls back to a default value hardcoded in `application.properties`.
 
 ---
 
@@ -528,18 +457,18 @@ Pipeline file: `.github/workflows/ci.yml`
 
 ## Learnings
 
-JWT from scratch — I understood what a JWT was before this project but had never built the full flow end to end. Generating the token on login, signing it with a secret key, reading it back in a filter on every request, validating it, and loading the user from the database — all of this was new. I learnt and built it during this project.
+**JWT from scratch** — I had never built the full JWT flow end to end before. Generating the token on login, signing it with a secret key, reading it back in a filter on every request, validating it, and loading the user from the database — all of this was new to me. I learnt and built it during this project.
 
-Pagination — I had not used pagination in practice before. I learned that it should fetch only the data needed for the current page rather than pulling everything at once.
+**Pagination** — I learned that the backend should fetch only the data needed for the current page rather than pulling everything at once.
 
-Lombok — Using `@Data`, `@AllArgsConstructor` and `@NoArgsConstructor` across all entity and DTO classes helped a lot and saved a lot of time. Smaller files made it easier to spot errors and understand each file clearly.
+**Lombok** — Using `@Data`, `@AllArgsConstructor`, and `@NoArgsConstructor` across all entity and DTO classes saved a lot of time. Smaller files made it easier to spot errors and understand each file clearly.
 
 ---
 
 ## Known Limitations
 
-- User management: An admin can view all users but cannot deactivate or delete any of them. There is no `DELETE` or `PATCH` endpoint for users.
-- No Swagger/OpenAPI: All endpoints are documented in this README instead.
-- No JWT refresh: Tokens expire after 24 hours and the user must log in again. Refresh tokens are not implemented.
+- **User management:** An admin can view all users but cannot deactivate or delete any of them. There is no `DELETE` or `PATCH` endpoint for users.
+- **No Swagger/OpenAPI:** All endpoints are documented in this README instead.
+- **No JWT refresh:** Tokens expire after 24 hours and the user must log in again. Refresh tokens are not implemented.
 
-I learnt from my mistakes , learnt a lot of new concepts , practised the ones I learnt clearly and implemented them through this project.
+I learnt a lot of new concepts, practised what I learnt and what I knew already and applied them through this project.
