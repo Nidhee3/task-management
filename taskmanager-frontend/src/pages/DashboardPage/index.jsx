@@ -139,7 +139,7 @@ const DashboardPage = () => {
             <input
               type="text"
               className="form-control"
-              placeholder="🔍  Search by title or description..."
+              placeholder="Search by title or description..."
               name="search"
               value={filters.search}
               onChange={handleFilterChange}
