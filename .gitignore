@@ -1,0 +1,14 @@
+.env
+
+# Backend
+taskmanager-backend/target/
+
+# Frontend
+taskmanager-frontend/build/
+taskmanager-frontend/node_modules/
+
+.idea/
+*.iml
+
+.DS_Store
+Thumbs.db
