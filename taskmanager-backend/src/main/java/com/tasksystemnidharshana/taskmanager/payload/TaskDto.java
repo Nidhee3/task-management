@@ -9,14 +9,21 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskDto {
-    // title is required
+
+    //title is mandatory
     @NotBlank(message = "Title is required")
     private String title;
-    //description is optional
+
+    // description is optional
     private String description;
 
+    // compulsory
+    @NotBlank(message = "Status is required")
     private String status;
+
+    // compulsory
+    @NotBlank(message = "Priority is required")
     private String priority;
-    //already there
+
     private Long assignedToId;
 }
