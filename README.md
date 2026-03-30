@@ -28,7 +28,7 @@ Demo - https://drive.google.com/file/d/14g84Pfyh-3CRndfpirhPctrOw7z2BhOs/view?us
 | Layer | Technology |
 |---|---|
 | Frontend | React 19, React Router v7 |
-| UI | Bootstrap 5 |
+| UI |  Plain CSS (CSS Modules + global styles),Bootstrap 5 |
 | HTTP | Axios |
 | Forms | Formik, Yup |
 | Backend | Spring Boot 4, Spring Security, Spring Data JPA, Hibernate |
@@ -335,5 +335,7 @@ Pipeline file: `.github/workflows/ci.yml`
 - Admin can view users but cannot deactivate or delete them. No DELETE or PATCH endpoint for users.
 - No Swagger/OpenAPI — all endpoints are documented in this README.
 - No JWT refresh — tokens expire after 24 hours and the user must log in again.
+- Axios baseURL is hardcoded to http://localhost:8080 — designed for local use only. Environment-based configuration would be needed for any cloud deployment.
+- application.properties contains fallback values for JWT secret and DB password for local dev convenience. Always set proper values via .env in any real environment.
   
 I learnt a lot of new concepts, practised what I learnt , what I already knew and applied them through this project.
