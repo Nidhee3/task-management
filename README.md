@@ -31,7 +31,7 @@ Demo - https://drive.google.com/file/d/14g84Pfyh-3CRndfpirhPctrOw7z2BhOs/view?us
 | UI | Bootstrap 5 |
 | HTTP | Axios |
 | Forms | Formik, Yup |
-| Backend | Spring Boot 3, Spring Security, Spring Data JPA, Hibernate |
+| Backend | Spring Boot 4, Spring Security, Spring Data JPA, Hibernate |
 | Auth | JWT via JJWT, BCrypt |
 | Database | MySQL 8 |
 | DevOps | Docker, Docker Compose, GitHub Actions CI |
@@ -50,7 +50,7 @@ task-management-main/
 │   │   ├── controller/AuthController.java, TaskController.java, UserController.java
 │   │   ├── entity/User.java, Task.java
 │   │   ├── exception/GlobalExceptionHandler.java, ResourceNotFoundException.java, TaskApiException.java
-│   │   ├── payload/LoginDto, RegisterDto, TaskDto, TaskResponseDto, UserResponseDto, JwtAuthResponse, PagedTaskResponse
+│   │   ├── payload/LoginDto, RegisterDto, TaskDto, TaskResponseDto, UserResponseDto, JwtAuthResponse, PagedTaskResponse, ErrorDetail
 │   │   ├── repository/TaskRepository.java, UserRepository.java
 │   │   ├── security/JwtTokenProvider, JwtAuthenticationFilter, CustomUserDetailsService
 │   │   └── service/impl/AuthServiceImpl, TaskServiceImpl, UserServiceImpl
@@ -108,8 +108,8 @@ Register a user, promote them to admin via SQL, then log in. Create a task and a
 | id | BIGINT | Primary key, auto increment |
 | title | VARCHAR | Not null |
 | description | TEXT | Optional |
-| status | VARCHAR | TODO, IN_PROGRESS, or DONE — defaults to TODO |
-| priority | VARCHAR | HIGH, MEDIUM, or LOW — defaults to MEDIUM |
+| status | VARCHAR | TODO, IN_PROGRESS, or DONE — required, no API-level default |
+| priority | VARCHAR | HIGH, MEDIUM, or LOW — required, no API-level default |
 | created_by | BIGINT | Foreign key → users.id |
 | assigned_to | BIGINT | Foreign key → users.id, nullable |
 | created_at | DATETIME | Set on insert |
@@ -306,7 +306,8 @@ Pipeline file: `.github/workflows/ci.yml`
 1. Check out the code
 2. Set up Java 21 — build backend with `mvn clean package -DskipTests`
 3. Set up Node 20 — build frontend with `npm ci && npm run build`
-4. Build both Docker images
+4. Set up Docker Buildx
+5. Build both Docker images
 
 ---
 
