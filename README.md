@@ -270,44 +270,6 @@ Query parameters for `GET /api/tasks`:
 | `page` | `0`, `1`, `2`... | Page number, starts at 0 |
 | `size` | number | Tasks per page — default is 6 |
 
-Sample login request and response:
-```json
-POST /api/auth/login
-{
-  "email": "abc@taskflow.com",
-  "password": "abc123"
-}
-
-// Response 200
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiJ9...",
-  "role": "ADMIN"
-}
-```
-
-Sample task creation request and response:
-```json
-POST /api/tasks
-{
-  "title": "Fix login bug",
-  "description": "Users cannot log in",
-  "status": "TODO",
-  "priority": "HIGH",
-  "assignedToId": 2
-}
-
-// Response 201
-{
-  "id": 10,
-  "title": "Fix login bug",
-  "status": "TODO",
-  "priority": "HIGH",
-  "createdByName": "Admin",
-  "assignedToName": "Jane Doe",
-  "createdAt": "2024-01-01T10:00:00",
-  "updatedAt": "2024-01-01T10:00:00"
-}
-```
 
 ---
 
