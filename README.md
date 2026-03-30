@@ -40,7 +40,7 @@ Demo - https://drive.google.com/file/d/14g84Pfyh-3CRndfpirhPctrOw7z2BhOs/view?us
 ---
 
 ## Project Structure
-
+ 
 ```
 task-management-main/
 ├── .github/workflows/ci.yml
@@ -53,16 +53,25 @@ task-management-main/
 │   │   ├── payload/LoginDto, RegisterDto, TaskDto, TaskResponseDto, UserResponseDto, JwtAuthResponse, PagedTaskResponse, ErrorDetail
 │   │   ├── repository/TaskRepository.java, UserRepository.java
 │   │   ├── security/JwtTokenProvider, JwtAuthenticationFilter, CustomUserDetailsService
-│   │   └── service/impl/AuthServiceImpl, TaskServiceImpl, UserServiceImpl
+│   │   ├── service/AuthService.java, TaskService.java, UserService.java
+│   │   │   └── impl/AuthServiceImpl.java, TaskServiceImpl.java, UserServiceImpl.java
+│   │   └── TaskmanagerApplication.java
 │   ├── Dockerfile
 │   └── pom.xml
 ├── taskmanager-frontend/
 │   ├── src/
 │   │   ├── api/axios.js
 │   │   ├── components/Navbar/
-│   │   └── pages/LoginPage, RegisterPage, DashboardPage, TaskFormPage, UserManagementPage, ErrorPage
+│   │   └── pages/
+│   │       ├── LoginPage/index.jsx, style.module.css
+│   │       ├── RegisterPage/index.jsx, style.module.css
+│   │       ├── DashboardPage/index.jsx
+│   │       ├── TaskFormPage/index.jsx
+│   │       ├── UserManagementPage/index.jsx
+│   │       └── ErrorPage/index.jsx
 │   ├── Dockerfile
 │   └── package.json
+├── .env                          (create this manually — ignored by .gitignore)
 └── docker-compose.yml
 ```
 
@@ -327,4 +336,4 @@ Pipeline file: `.github/workflows/ci.yml`
 - No Swagger/OpenAPI — all endpoints are documented in this README.
 - No JWT refresh — tokens expire after 24 hours and the user must log in again.
   
-I learnt a lot of new concepts, practised what I learnt and what I knew already and applied them through this project.
+I learnt a lot of new concepts, practised what I learnt , what I already knew and applied them through this project.
